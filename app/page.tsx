@@ -44,7 +44,7 @@ export default function Home() {
         const { data } = await supabase
           .from('portfolio')
           .select('*')
-          .eq('is_featured', true)
+          .or('is_featured.eq.true,category.eq.Slideshow')
           .order('created_at', { ascending: false });
         if (data && data.length > 0) {
           setDbSlides(data);

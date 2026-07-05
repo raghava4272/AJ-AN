@@ -10,7 +10,7 @@ const adminSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const CATEGORIES = ['2D', '3D', 'VFX', 'Graphic Design', 'Art and Design', 'Motion Graphics'];
+const CATEGORIES = ['2D', '3D', 'VFX', 'Graphic Design', 'Art and Design', 'Motion Graphics', 'Slideshow'];
 const ADMIN_PASSWORD = 'admin123';
 
 type Tab = 'upload' | 'manage';
@@ -172,7 +172,7 @@ export default function AdminPage() {
   const filteredItems = filterCat === 'All'
     ? items
     : filterCat === 'Slideshow Only'
-      ? items.filter(i => i.is_featured)
+      ? items.filter(i => i.is_featured || i.category === 'Slideshow')
       : items.filter(i => i.category === filterCat);
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -577,18 +577,19 @@ export default function AdminPage() {
                       <button
                         type="button"
                         onClick={() => handleToggleFeatured(item)}
+                        disabled={item.category === 'Slideshow'}
                         style={{
                           width: '100%', padding: '8px', borderRadius: '6px',
-                          border: '1px solid #2a2a2a', background: item.is_featured ? 'rgba(227,28,28,0.12)' : 'transparent',
-                          color: item.is_featured ? '#e31c1c' : '#777',
-                          fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                          border: '1px solid #2a2a2a', background: (item.is_featured || item.category === 'Slideshow') ? 'rgba(227,28,28,0.12)' : 'transparent',
+                          color: (item.is_featured || item.category === 'Slideshow') ? '#e31c1c' : '#777',
+                          fontSize: '12px', fontWeight: 600, cursor: item.category === 'Slideshow' ? 'default' : 'pointer',
                           transition: 'all 0.2s', marginBottom: '8px',
-                          borderColor: item.is_featured ? 'rgba(227,28,28,0.3)' : '#2a2a2a',
+                          borderColor: (item.is_featured || item.category === 'Slideshow') ? 'rgba(227,28,28,0.3)' : '#2a2a2a',
                         }}
-                        onMouseEnter={e => { if (!item.is_featured) { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; } }}
-                        onMouseLeave={e => { if (!item.is_featured) { e.currentTarget.style.color = '#777'; e.currentTarget.style.background = 'transparent'; } }}
+                        onMouseEnter={e => { if (!item.is_featured && item.category !== 'Slideshow') { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; } }}
+                        onMouseLeave={e => { if (!item.is_featured && item.category !== 'Slideshow') { e.currentTarget.style.color = '#777'; e.currentTarget.style.background = 'transparent'; } }}
                       >
-                        {item.is_featured ? '★ Featured in Slideshow' : '☆ Add to Slideshow'}
+                        {(item.is_featured || item.category === 'Slideshow') ? '★ Featured in Slideshow' : '☆ Add to Slideshow'}
                       </button>
 
                       <button
