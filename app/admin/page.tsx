@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [isFeatured, setIsFeatured] = useState(false);
 
   // Manage tab
   const [tab, setTab] = useState<Tab>('upload');
@@ -115,6 +116,7 @@ export default function AdminPage() {
         category,
         description: description.trim() || null,
         image_url: imageUrl,
+        is_featured: isFeatured,
       });
 
       if (dbErr) throw dbErr;
@@ -122,6 +124,7 @@ export default function AdminPage() {
       setUploadMsg({ type: 'success', text: `"${title}" uploaded successfully!` });
       setTitle('');
       setDescription('');
+      setIsFeatured(false);
       setFile(null);
       setPreview(null);
       if (fileRef.current) fileRef.current.value = '';
@@ -148,6 +151,21 @@ export default function AdminPage() {
       console.error('Delete error:', err);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  // ── Toggle Featured Slideshow ─────────────────────────────────────────────
+  const handleToggleFeatured = async (item: Portfolio) => {
+    const nextState = !item.is_featured;
+    try {
+      const { error } = await adminSupabase
+        .from('portfolio')
+        .update({ is_featured: nextState })
+        .eq('id', item.id);
+      if (error) throw error;
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_featured: nextState } : i));
+    } catch (err) {
+      console.error('Error updating slideshow status:', err);
     }
   };
 
@@ -393,6 +411,20 @@ export default function AdminPage() {
                   </div>
                 </div>
 
+                {/* Slideshow Checkbox */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0' }}>
+                  <input
+                    type="checkbox"
+                    id="isFeatured"
+                    checked={isFeatured}
+                    onChange={e => setIsFeatured(e.target.checked)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#e31c1c' }}
+                  />
+                  <label htmlFor="isFeatured" style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }}>
+                    Show in Homepage Slideshow
+                  </label>
+                </div>
+
                 {/* Status Message */}
                 {uploadMsg && (
                   <div style={{
@@ -537,6 +569,24 @@ export default function AdminPage() {
                       <p style={{ fontSize: '11px', color: '#444', marginBottom: '12px' }}>
                         {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
+                      {/* Slideshow Toggle Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFeatured(item)}
+                        style={{
+                          width: '100%', padding: '8px', borderRadius: '6px',
+                          border: '1px solid #2a2a2a', background: item.is_featured ? 'rgba(227,28,28,0.12)' : 'transparent',
+                          color: item.is_featured ? '#e31c1c' : '#777',
+                          fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                          transition: 'all 0.2s', marginBottom: '8px',
+                          borderColor: item.is_featured ? 'rgba(227,28,28,0.3)' : '#2a2a2a',
+                        }}
+                        onMouseEnter={e => { if (!item.is_featured) { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; } }}
+                        onMouseLeave={e => { if (!item.is_featured) { e.currentTarget.style.color = '#777'; e.currentTarget.style.background = 'transparent'; } }}
+                      >
+                        {item.is_featured ? '★ Featured in Slideshow' : '☆ Add to Slideshow'}
+                      </button>
+
                       <button
                         onClick={() => handleDelete(item)}
                         disabled={deletingId === item.id}

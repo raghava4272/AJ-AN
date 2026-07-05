@@ -4,38 +4,77 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Header from '@/components/Header';
+import { supabase } from '@/lib/supabase';
+import type { Portfolio } from '@/lib/supabase';
+
+const fallbackSlides: Portfolio[] = [
+  {
+    id: 'default-1',
+    title: 'People Media Factory',
+    image_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80',
+    description: "People Media Factory is a Seattle based Production Company specializing in pre-production setup, post production setup, co-production, Events.",
+    category: 'Featured',
+    created_at: '',
+  },
+  {
+    id: 'default-2',
+    title: 'Transform Ideas into Power',
+    image_url: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=1200&q=80',
+    description: 'Create visual experiences that captivate audiences and elevate businesses.',
+    category: 'Featured',
+    created_at: '',
+  },
+  {
+    id: 'default-3',
+    title: 'Crafted with Purpose',
+    image_url: 'https://images.unsplash.com/photo-1618005198143-e528346d9a59?w=1200&q=80',
+    description: 'Every frame, every design, every animation—crafted to inspire and engage.',
+    category: 'Featured',
+    created_at: '',
+  }
+];
 
 export default function Home() {
   const [current, setCurrent] = useState(0);
-
-  const slides = [
-    {
-      title: 'We Create Visual Experiences That Move People.',
-      subtitle: "Great brands aren't remembered because they exist—they're remembered because they tell unforgettable stories.",
-    },
-    {
-      title: 'Transform Ideas into Power',
-      subtitle: 'Create visual experiences that captivate audiences and elevate businesses.',
-    },
-    {
-      title: 'Crafted with Purpose',
-      subtitle: 'Every frame, every design, every animation—crafted to inspire and engage.',
-    },
-  ];
+  const [dbSlides, setDbSlides] = useState<Portfolio[]>([]);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(timer);
+    const fetchFeatured = async () => {
+      try {
+        const { data } = await supabase
+          .from('portfolio')
+          .select('*')
+          .eq('is_featured', true)
+          .order('created_at', { ascending: false });
+        if (data && data.length > 0) {
+          setDbSlides(data);
+        }
+      } catch (err) {
+        console.error('Error fetching featured:', err);
+      }
+    };
+    fetchFeatured();
   }, []);
 
-  const prev = () => setCurrent((c) => (c - 1 + slides.length) % slides.length);
-  const next = () => setCurrent((c) => (c + 1) % slides.length);
+  const activeSlides = dbSlides.length > 0 ? dbSlides : fallbackSlides;
+
+  useEffect(() => {
+    if (activeSlides.length <= 1) return;
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % activeSlides.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [activeSlides]);
+
+  const prev = () => setCurrent((c) => (c - 1 + activeSlides.length) % activeSlides.length);
+  const next = () => setCurrent((c) => (c + 1) % activeSlides.length);
+
+  const prevIdx = (current - 1 + activeSlides.length) % activeSlides.length;
+  const nextIdx = (current + 1) % activeSlides.length;
 
   const services = [
-    { name: '2D Animation', href: '/2d', icon: '🎨' },
-    { name: '3D Animation', href: '/3d', icon: '🎬' },
+    { name: '2D', href: '/2d', icon: '🎨' },
+    { name: '3D', href: '/3d', icon: '🎬' },
     { name: 'Visual Effects', href: '/vfx', icon: '✨' },
     { name: 'Graphic Design', href: '/graphic-design', icon: '🖌️' },
     { name: 'Art & Design', href: '/art-design', icon: '🖼️' },
@@ -43,129 +82,240 @@ export default function Home() {
   ];
 
   return (
-    <main style={{ background: '#0a0a0a', color: '#fff', minHeight: '100vh' }}>
+    <main style={{ background: '#0a0a0a', color: '#fff', minHeight: '100vh', overflowX: 'hidden' }}>
       <Header />
 
-      {/* Hero Section */}
+      {/* Hero Section — 3D Poster Slider matching Reference Screenshot 1 */}
       <section style={{
         position: 'relative',
-        height: '100vh',
-        marginTop: 0,
+        minHeight: '100vh',
+        paddingTop: '100px',
+        paddingBottom: '60px',
         overflow: 'hidden',
-        background: 'linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%)',
+        background: '#050505',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-        {/* Subtle background texture */}
+        {/* Immersive Blurred Background of the current poster */}
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(227,28,28,0.06) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(227,28,28,0.04) 0%, transparent 50%)',
+          backgroundImage: `url(${activeSlides[current].image_url})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(40px) brightness(0.25)',
+          transform: 'scale(1.1)',
+          transition: 'background-image 0.8s ease-in-out',
+          zIndex: 1,
+        }} />
+
+        {/* Ambient Dark Gradients */}
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(5,5,5,0.7) 0%, rgba(10,10,10,0.95) 100%)',
+          zIndex: 2,
           pointerEvents: 'none',
         }} />
 
-        {/* Left Arrow */}
-        <button
-          onClick={prev}
-          aria-label="Previous"
-          style={{
-            position: 'absolute', left: '32px', top: '50%', transform: 'translateY(-50%)',
-            zIndex: 20, width: '52px', height: '52px', borderRadius: '50%',
-            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
-            color: '#fff', fontSize: '20px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.3s',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e31c1c'; (e.currentTarget as HTMLElement).style.borderColor = '#e31c1c'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.15)'; }}
-        >
-          ←
-        </button>
-
-        {/* Right Arrow */}
-        <button
-          onClick={next}
-          aria-label="Next"
-          style={{
-            position: 'absolute', right: '32px', top: '50%', transform: 'translateY(-50%)',
-            zIndex: 20, width: '52px', height: '52px', borderRadius: '50%',
-            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)',
-            color: '#fff', fontSize: '20px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.3s',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#e31c1c'; (e.currentTarget as HTMLElement).style.borderColor = '#e31c1c'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.15)'; }}
-        >
-          →
-        </button>
-
-        {/* Content */}
-        <motion.div
-          key={current}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          style={{ textAlign: 'center', maxWidth: '860px', padding: '0 80px', position: 'relative', zIndex: 10 }}
-        >
-          <h1 style={{
-            fontSize: 'clamp(36px, 6vw, 72px)',
-            fontWeight: 800,
-            lineHeight: 1.1,
-            marginBottom: '24px',
-            letterSpacing: '-1px',
-          }}>
-            {slides[current].title}
-          </h1>
-          <p style={{ fontSize: '18px', color: '#999', marginBottom: '48px', lineHeight: 1.7, maxWidth: '600px', margin: '0 auto 48px' }}>
-            {slides[current].subtitle}
-          </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-            <Link href="/contact" style={{
-              padding: '14px 36px', background: '#e31c1c', color: '#fff',
-              border: 'none', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
-              letterSpacing: '0.3px', transition: 'background 0.2s',
-              textDecoration: 'none', display: 'inline-block',
+        {/* Circular Left Arrow */}
+        {activeSlides.length > 1 && (
+          <button
+            onClick={prev}
+            aria-label="Previous"
+            style={{
+              position: 'absolute', left: '40px', top: '50%', transform: 'translateY(-50%)',
+              zIndex: 20, width: '48px', height: '48px', borderRadius: '50%',
+              background: '#ffffff', border: 'none',
+              color: '#000000', fontSize: '18px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
+              fontWeight: 'bold',
+              transition: 'all 0.2s',
             }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#c41515'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#e31c1c'}
-            >
-              Get Started
-            </Link>
-            <button style={{
-              padding: '14px 36px', background: 'transparent', color: '#fff',
-              border: '1px solid rgba(255,255,255,0.25)', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
-              letterSpacing: '0.3px', transition: 'all 0.2s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#fff'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.25)'; (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
-            >
-              Learn More
-            </button>
-          </div>
-        </motion.div>
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
+          >
+            ←
+          </button>
+        )}
 
-        {/* Dots */}
+        {/* Circular Right Arrow */}
+        {activeSlides.length > 1 && (
+          <button
+            onClick={next}
+            aria-label="Next"
+            style={{
+              position: 'absolute', right: '40px', top: '50%', transform: 'translateY(-50%)',
+              zIndex: 20, width: '48px', height: '48px', borderRadius: '50%',
+              background: '#ffffff', border: 'none',
+              color: '#000000', fontSize: '18px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
+              fontWeight: 'bold',
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(-50%) scale(1)'; }}
+          >
+            →
+          </button>
+        )}
+
+        {/* 3D Poster Slider Container */}
         <div style={{
-          position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
-          display: 'flex', gap: '10px', zIndex: 20,
+          position: 'relative',
+          zIndex: 10,
+          width: '100%',
+          maxWidth: '1200px',
+          padding: '0 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}>
-          {slides.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrent(idx)}
-              aria-label={`Slide ${idx + 1}`}
+          
+          <div className="slideshow-carousel" style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '32px',
+            width: '100%',
+            marginBottom: '40px',
+          }}>
+            {/* Left Poster (Flanking) */}
+            {activeSlides.length > 1 && (
+              <div 
+                onClick={prev}
+                style={{
+                  width: '220px',
+                  height: '300px',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  opacity: 0.3,
+                  transform: 'scale(0.85)',
+                  transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                  flexShrink: 0,
+                }}
+                className="flanking-poster"
+              >
+                <img src={activeSlides[prevIdx].image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+
+            {/* Center Poster (Active) */}
+            <div 
               style={{
-                height: '3px',
-                width: idx === current ? '32px' : '10px',
-                background: idx === current ? '#e31c1c' : 'rgba(255,255,255,0.3)',
-                border: 'none', cursor: 'pointer',
-                transition: 'all 0.3s', borderRadius: '2px',
-                padding: 0,
+                width: '320px',
+                height: '440px',
+                borderRadius: '16px',
+                overflow: 'hidden',
+                opacity: 1,
+                transform: 'scale(1)',
+                transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.7)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                flexShrink: 0,
               }}
-            />
-          ))}
+              className="active-poster"
+            >
+              <img src={activeSlides[current].image_url} alt={activeSlides[current].title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+
+            {/* Right Poster (Flanking) */}
+            {activeSlides.length > 1 && (
+              <div 
+                onClick={next}
+                style={{
+                  width: '220px',
+                  height: '300px',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  opacity: 0.3,
+                  transform: 'scale(0.85)',
+                  transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+                  cursor: 'pointer',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                  flexShrink: 0,
+                }}
+                className="flanking-poster"
+              >
+                <img src={activeSlides[nextIdx].image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+          </div>
+
+          {/* Centered Poster Info below */}
+          <motion.div
+            key={current}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ textAlign: 'center', maxWidth: '800px', padding: '0 40px' }}
+          >
+            <h1 style={{
+              fontSize: 'clamp(28px, 4vw, 48px)',
+              fontWeight: 800,
+              marginBottom: '16px',
+              letterSpacing: '-1px',
+              lineHeight: 1.1,
+            }}>
+              {activeSlides[current].title}
+            </h1>
+            
+            <p style={{
+              fontSize: '15px',
+              color: '#aaa',
+              marginBottom: '32px',
+              lineHeight: 1.7,
+              maxWidth: '640px',
+              margin: '0 auto 32px',
+            }}>
+              {activeSlides[current].description || "Visual masterpiece crafted by AJ&AN Creative Studio."}
+            </p>
+
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+              <Link href="/contact" style={{
+                padding: '12px 32px', background: '#e31c1c', color: '#fff',
+                border: 'none', fontWeight: 600, fontSize: '14px', cursor: 'pointer',
+                letterSpacing: '0.3px', transition: 'background 0.2s',
+                textDecoration: 'none', display: 'inline-block', borderRadius: '4px',
+              }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#c41515'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#e31c1c'}
+              >
+                Get Started
+              </Link>
+            </div>
+          </motion.div>
+
         </div>
+
+        {/* Indicator dots */}
+        {activeSlides.length > 1 && (
+          <div style={{
+            position: 'absolute', bottom: '40px', left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', gap: '8px', zIndex: 20,
+          }}>
+            {activeSlides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrent(idx)}
+                aria-label={`Slide ${idx + 1}`}
+                style={{
+                  height: '6px',
+                  width: idx === current ? '24px' : '6px',
+                  background: idx === current ? '#e31c1c' : 'rgba(255,255,255,0.25)',
+                  border: 'none', cursor: 'pointer',
+                  transition: 'all 0.3s', borderRadius: '3px',
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* About Section */}
@@ -299,6 +449,21 @@ export default function Home() {
           </Link>
         </motion.div>
       </section>
+      
+      <style>{`
+        @media (max-width: 768px) {
+          .slideshow-carousel {
+            gap: 16px !important;
+          }
+          .flanking-poster {
+            display: none !important;
+          }
+          .active-poster {
+            width: 260px !important;
+            height: 360px !important;
+          }
+        }
+      `}</style>
     </main>
   );
 }

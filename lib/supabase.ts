@@ -12,5 +12,6 @@ export type Portfolio = {
   video_url?: string;
   description?: string;
   category: string;
+  is_featured?: boolean;
   created_at: string;
 };

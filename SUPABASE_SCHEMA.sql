@@ -6,6 +6,7 @@ CREATE TABLE portfolio (
   video_url TEXT,
   description TEXT,
   category VARCHAR(50) NOT NULL,
+  is_featured BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
