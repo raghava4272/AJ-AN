@@ -17,6 +17,7 @@ export default function Header() {
     { href: '/art-design', label: 'Art & Design' },
     { href: '/motion-graphics', label: 'Motion Graphics' },
     { href: '/about', label: 'About Us' },
+    { href: '/contact', label: 'Contact Us' },
   ];
 
   const isActive = (href: string) => pathname === href;
