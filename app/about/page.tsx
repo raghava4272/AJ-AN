@@ -99,7 +99,7 @@ export default function About() {
       ))}
 
 
-      {/* Our Team Section */}
+      {/* Our Crew Section */}
       <section style={{ padding: '72px 32px', borderBottom: '1px solid #1e1e1e', background: '#0a0a0a' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <motion.div
@@ -109,7 +109,7 @@ export default function About() {
             viewport={{ once: true }}
           >
             <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800, marginBottom: '36px', letterSpacing: '-0.5px' }}>
-              Our Team
+              Our Crew
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }} className="team-grid">
               {/* Member 1 */}
