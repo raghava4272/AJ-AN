@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import Header from '@/components/Header';
 
 export default function About() {
@@ -155,17 +156,19 @@ export default function About() {
           <p style={{ fontSize: '16px', color: '#666', marginBottom: '40px', lineHeight: 1.7 }}>
             Let&apos;s work together to transform your vision into something extraordinary.
           </p>
-          <button
+          <Link
+            href="/contact"
             style={{
               padding: '14px 44px', background: '#e31c1c', color: '#fff',
               border: 'none', fontWeight: 700, fontSize: '15px', cursor: 'pointer',
               letterSpacing: '0.3px', transition: 'background 0.2s',
+              textDecoration: 'none', display: 'inline-block',
             }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#c41515'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#e31c1c'}
           >
             Get In Touch
-          </button>
+          </Link>
         </motion.div>
       </section>
     </main>
