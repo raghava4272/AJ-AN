@@ -30,6 +30,8 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
   const [isFeatured, setIsFeatured] = useState(false);
 
   // Manage tab
@@ -79,7 +81,10 @@ export default function AdminPage() {
     reader.onload = ev => setPreview(ev.target?.result as string);
     reader.readAsDataURL(f);
   };
-
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) setVideoFile(f);
+  };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     const f = e.dataTransfer.files?.[0];
@@ -102,7 +107,7 @@ export default function AdminPage() {
     setUploadMsg(null);
 
     try {
-      // 1. Upload file to Supabase Storage
+      // 1. Upload image file to Supabase Storage
       const ext = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: storageErr } = await adminSupabase.storage
@@ -111,9 +116,24 @@ export default function AdminPage() {
 
       if (storageErr) throw storageErr;
 
-      // 2. Get public URL
+      // Get public URL for image
       const { data: urlData } = adminSupabase.storage.from('portfolio').getPublicUrl(fileName);
       const imageUrl = urlData.publicUrl;
+
+      // 2. Upload video file if provided
+      let videoUrl: string | null = null;
+      if (videoFile) {
+        const videoExt = videoFile.name.split('.').pop();
+        const videoFileName = `${Date.now()}-${Math.random().toString(36).slice(2)}-video.${videoExt}`;
+        const { error: videoStorageErr } = await adminSupabase.storage
+          .from('portfolio')
+          .upload(videoFileName, videoFile, { cacheControl: '3600', upsert: false });
+
+        if (videoStorageErr) throw videoStorageErr;
+
+        const { data: videoUrlData } = adminSupabase.storage.from('portfolio').getPublicUrl(videoFileName);
+        videoUrl = videoUrlData.publicUrl;
+      }
 
       // 3. Insert into portfolio table
       const { error: dbErr } = await adminSupabase.from('portfolio').insert({
@@ -121,6 +141,7 @@ export default function AdminPage() {
         category,
         description: description.trim() || null,
         image_url: imageUrl,
+        video_url: videoUrl,
         is_featured: isFeatured,
       });
 
@@ -132,7 +153,9 @@ export default function AdminPage() {
       setIsFeatured(false);
       setFile(null);
       setPreview(null);
+      setVideoFile(null);
       if (fileRef.current) fileRef.current.value = '';
+      if (videoRef.current) videoRef.current.value = '';
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Upload failed. Please try again.';
       setUploadMsg({ type: 'error', text: message });
@@ -146,10 +169,19 @@ export default function AdminPage() {
     if (!confirm(`Delete "${item.title}"? This cannot be undone.`)) return;
     setDeletingId(item.id);
     try {
-      // Extract filename from URL
+      // 1. Delete image from Storage
       const parts = item.image_url.split('/');
       const fileName = parts[parts.length - 1];
       await adminSupabase.storage.from('portfolio').remove([fileName]);
+
+      // 2. Delete video from Storage if exists
+      if (item.video_url) {
+        const videoParts = item.video_url.split('/');
+        const videoFileName = videoParts[videoParts.length - 1];
+        await adminSupabase.storage.from('portfolio').remove([videoFileName]);
+      }
+
+      // 3. Delete database record
       await adminSupabase.from('portfolio').delete().eq('id', item.id);
       setItems(prev => prev.filter(i => i.id !== item.id));
     } catch (err) {
@@ -436,11 +468,50 @@ export default function AdminPage() {
                         <p style={{ fontSize: '11px', color: '#333', marginTop: '8px' }}>JPG, PNG, WEBP — max 10MB</p>
                       </div>
                     )}
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+
+                {/* Video Upload Drop Zone */}
+                <div>
+                  <label style={labelStyle}>Video <span style={{ color: '#444' }}>(optional)</span></label>
+                  <div
+                    onClick={() => videoRef.current?.click()}
+                    style={{
+                      border: `2px dashed ${videoFile ? '#e31c1c44' : '#2a2a2a'}`,
+                      borderRadius: '10px', padding: '24px 20px',
+                      textAlign: 'center', cursor: 'pointer',
+                      background: videoFile ? '#e31c1c08' : '#111',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = '#e31c1c66')}
+                    onMouseLeave={e => (e.currentTarget.style.borderColor = videoFile ? '#e31c1c44' : '#2a2a2a')}
+                  >
+                    {videoFile ? (
+                      <div>
+                        <div style={{ fontSize: '20px', marginBottom: '4px' }}>🎥</div>
+                        <p style={{ fontSize: '13px', color: '#ccc', fontWeight: 600 }}>{videoFile.name}</p>
+                        <p style={{ fontSize: '11px', color: '#555', marginTop: '2px' }}>
+                          {(videoFile.size / 1024 / 1024).toFixed(2)} MB — click to change
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎬</div>
+                        <p style={{ fontSize: '13px', color: '#888' }}>Click to upload a video file</p>
+                        <p style={{ fontSize: '11px', color: '#333', marginTop: '6px' }}>MP4, WEBM, MOV — max 100MB</p>
+                      </div>
+                    )}
                     <input
-                      ref={fileRef}
+                      ref={videoRef}
                       type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
+                      accept="video/*"
+                      onChange={handleVideoFileChange}
                       style={{ display: 'none' }}
                     />
                   </div>
@@ -586,15 +657,29 @@ export default function AdminPage() {
                         alt={item.title}
                         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
-                      {/* Category badge */}
+                       {/* Category badge */}
                       <div style={{
                         position: 'absolute', top: '10px', left: '10px',
                         background: '#e31c1ccc', color: '#fff', fontSize: '10px',
                         fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase',
                         padding: '3px 8px', borderRadius: '4px',
+                        zIndex: 2,
                       }}>
                         {item.category}
                       </div>
+
+                      {/* Video badge */}
+                      {item.video_url && (
+                        <div style={{
+                          position: 'absolute', top: '10px', right: '10px',
+                          background: 'rgba(0,0,0,0.75)', color: '#fff', fontSize: '10px',
+                          fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase',
+                          padding: '3px 8px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)',
+                          zIndex: 2, display: 'flex', alignItems: 'center', gap: '4px'
+                        }}>
+                          🎥 Video
+                        </div>
+                      )}
                     </div>
                     {/* Info */}
                     <div style={{ padding: '14px' }}>

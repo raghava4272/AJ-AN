@@ -14,6 +14,7 @@ interface CategoryPageProps {
 export default function CategoryPage({ category, title }: CategoryPageProps) {
   const [items, setItems] = useState<Portfolio[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeVideoUrl, setActiveVideoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -98,7 +99,8 @@ export default function CategoryPage({ category, title }: CategoryPageProps) {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: idx * 0.06 }}
                 viewport={{ once: true }}
-                style={{ cursor: 'pointer' }}
+                style={{ cursor: item.video_url ? 'pointer' : 'default' }}
+                onClick={() => item.video_url && setActiveVideoUrl(item.video_url)}
               >
                 {/* Poster Image */}
                 <div
@@ -126,6 +128,34 @@ export default function CategoryPage({ category, title }: CategoryPageProps) {
                       className="portfolio-img"
                     />
                   )}
+
+                  {/* Play Button Overlay on Hover if video is attached */}
+                  {item.video_url && (
+                    <div
+                      style={{
+                        position: 'absolute', inset: 0,
+                        background: 'rgba(0,0,0,0.4)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        opacity: 0, transition: 'opacity 0.3s ease',
+                      }}
+                      className="play-overlay"
+                    >
+                      <div
+                        style={{
+                          width: '56px', height: '56px', borderRadius: '50%',
+                          background: '#e31c1c', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 8px 24px rgba(227, 28, 28, 0.4)',
+                          transform: 'scale(0.9)', transition: 'transform 0.3s ease',
+                        }}
+                        className="play-button"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
+                          <polygon points="5,3 19,12 5,21" />
+                        </svg>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {/* Title below image — matches reference */}
                 <h3 style={{
@@ -150,6 +180,63 @@ export default function CategoryPage({ category, title }: CategoryPageProps) {
           </div>
         )}
       </section>
+
+      {/* Video Lightbox Modal */}
+      {activeVideoUrl && (
+        <div
+          onClick={() => setActiveVideoUrl(null)}
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(0,0,0,0.92)', zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '24px',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'relative', width: '100%', maxWidth: '960px',
+              aspectRatio: '16/9', background: '#000', borderRadius: '12px',
+              overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setActiveVideoUrl(null)}
+              style={{
+                position: 'absolute', top: '16px', right: '16px',
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.2)',
+                color: '#fff', fontSize: '18px', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                zIndex: 10, transition: 'all 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#e31c1c'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.6)'}
+            >
+              ✕
+            </button>
+            <video
+              src={activeVideoUrl}
+              controls
+              autoPlay
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* CSS Styles for play overlays */}
+      <style>{`
+        .portfolio-card:hover .play-overlay {
+          opacity: 1 !important;
+        }
+        .portfolio-card:hover .play-button {
+          transform: scale(1) !important;
+        }
+      `}</style>
     </main>
   );
 }
