@@ -10,9 +10,9 @@ import type { Portfolio } from '@/lib/supabase';
 const fallbackSlides: Portfolio[] = [
   {
     id: 'default-1',
-    title: 'People Media Factory',
+    title: 'AJ&AN Creative Studio',
     image_url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&q=80',
-    description: "People Media Factory is a Seattle based Production Company specializing in pre-production setup, post production setup, co-production, Events.",
+    description: "AJ&AN Creative Studio is a premier creative studio delivering world-class visual experiences, design, and motion graphics.",
     category: 'Featured',
     created_at: '',
   },
