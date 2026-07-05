@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800', '900'] });
 
 export const metadata: Metadata = {
-  title: 'People Media Factory',
-  description: 'Seattle based Production Company',
+  title: 'AJ&AN Creative Studio',
+  description: 'Creative Studio',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
