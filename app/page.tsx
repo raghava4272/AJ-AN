@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import Header from '@/components/Header';
 
 export default function Home() {
@@ -120,16 +121,17 @@ export default function Home() {
             {slides[current].subtitle}
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-            <button style={{
+            <Link href="/contact" style={{
               padding: '14px 36px', background: '#e31c1c', color: '#fff',
               border: 'none', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
               letterSpacing: '0.3px', transition: 'background 0.2s',
+              textDecoration: 'none', display: 'inline-block',
             }}
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#c41515'}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#e31c1c'}
             >
               Get Started
-            </button>
+            </Link>
             <button style={{
               padding: '14px 36px', background: 'transparent', color: '#fff',
               border: '1px solid rgba(255,255,255,0.25)', fontWeight: 600, fontSize: '15px', cursor: 'pointer',
@@ -282,17 +284,19 @@ export default function Home() {
           <p style={{ fontSize: '17px', color: '#666', marginBottom: '48px', lineHeight: 1.7 }}>
             Let&apos;s create work that inspires, engages, and leaves a lasting impression.
           </p>
-          <button
+          <Link
+            href="/contact"
             style={{
               padding: '16px 48px', background: '#e31c1c', color: '#fff',
               border: 'none', fontWeight: 700, fontSize: '16px', cursor: 'pointer',
               letterSpacing: '0.5px', transition: 'background 0.2s',
+              textDecoration: 'none', display: 'inline-block',
             }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#c41515'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#e31c1c'}
           >
             Start Your Project
-          </button>
+          </Link>
         </motion.div>
       </section>
     </main>
