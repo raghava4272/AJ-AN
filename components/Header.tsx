@@ -51,7 +51,7 @@ export default function Header() {
             <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
               <span style={{ fontWeight: 800, fontSize: '24px', letterSpacing: '-0.5px', color: '#fff' }}>
                 <span style={{ color: '#e31c1c' }}>AJ</span>
-                <span style={{ color: '#aaa', fontWeight: 300, fontSize: '20px', margin: '0 4px' }}>+</span>
+                <span style={{ color: '#aaa', fontWeight: 300, fontSize: '20px', margin: '0 4px' }}>&</span>
                 <span style={{ color: '#fff' }}>AN</span>
               </span>
               <span style={{ fontSize: '11px', color: '#666', letterSpacing: '2.5px', textTransform: 'uppercase', fontWeight: 500 }}>

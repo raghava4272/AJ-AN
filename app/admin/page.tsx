@@ -169,7 +169,7 @@ export default function AdminPage() {
           {/* Logo */}
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ fontSize: '28px', fontWeight: 800, color: '#fff', letterSpacing: '-1px', marginBottom: '6px' }}>
-              <span style={{ color: '#e31c1c' }}>AJ</span> + <span>AN</span>
+              <span style={{ color: '#e31c1c' }}>AJ</span> & <span>AN</span>
             </div>
             <div style={{ fontSize: '11px', color: '#555', letterSpacing: '3px', textTransform: 'uppercase' }}>Admin Panel</div>
           </div>
@@ -238,7 +238,7 @@ export default function AdminPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <a href="/" style={{ textDecoration: 'none', fontSize: '24px', fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>
-            <span style={{ color: '#e31c1c' }}>AJ</span> + AN
+            <span style={{ color: '#e31c1c' }}>AJ</span> & AN
           </a>
           <span style={{ color: '#333', fontSize: '16px' }}>|</span>
           <span style={{ fontSize: '13px', color: '#666', letterSpacing: '1px', textTransform: 'uppercase' }}>Admin</span>
