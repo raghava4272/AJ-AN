@@ -28,3 +28,26 @@ CREATE POLICY "Public read storage" ON storage.objects
 -- Create index
 CREATE INDEX idx_portfolio_category ON portfolio(category);
 CREATE INDEX idx_portfolio_created_at ON portfolio(created_at DESC);
+
+-- Create contact_requests table
+CREATE TABLE contact_requests (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE contact_requests ENABLE ROW LEVEL SECURITY;
+
+-- Allow public insert submissions
+CREATE POLICY "Public insert access" ON contact_requests
+  FOR INSERT WITH CHECK (true);
+
+-- Allow authenticated read/delete access (also bypassable using service role key)
+CREATE POLICY "Admin select access" ON contact_requests
+  FOR SELECT USING (true);
+
+CREATE POLICY "Admin delete access" ON contact_requests
+  FOR DELETE USING (true);

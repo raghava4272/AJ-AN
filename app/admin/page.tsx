@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import type { Portfolio } from '@/lib/supabase';
+import type { Portfolio, ContactRequest } from '@/lib/supabase';
 
 // Use service role key for admin operations (uploads, inserts, deletes)
 const adminSupabase = createClient(
@@ -13,7 +13,7 @@ const adminSupabase = createClient(
 const CATEGORIES = ['2D', '3D', 'VFX', 'Graphic Design', 'Art and Design', 'Motion Graphics', 'Slideshow'];
 const ADMIN_PASSWORD = 'admin123';
 
-type Tab = 'upload' | 'manage';
+type Tab = 'upload' | 'manage' | 'requests';
 
 export default function AdminPage() {
   // Auth
@@ -38,6 +38,11 @@ export default function AdminPage() {
   const [loadingItems, setLoadingItems] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [filterCat, setFilterCat] = useState('All');
+
+  // Requests tab
+  const [requests, setRequests] = useState<ContactRequest[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [deletingRequestId, setDeletingRequestId] = useState<string | null>(null);
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   const handleLogin = (e: React.FormEvent) => {
@@ -154,7 +159,6 @@ export default function AdminPage() {
     }
   };
 
-  // ── Toggle Featured Slideshow ─────────────────────────────────────────────
   const handleToggleFeatured = async (item: Portfolio) => {
     const nextState = !item.is_featured;
     try {
@@ -168,6 +172,33 @@ export default function AdminPage() {
       console.error('Error updating slideshow status:', err);
     }
   };
+
+  const fetchRequests = async () => {
+    setLoadingRequests(true);
+    const { data } = await adminSupabase
+      .from('contact_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setRequests(data || []);
+    setLoadingRequests(false);
+  };
+
+  const handleDeleteRequest = async (id: string) => {
+    if (!confirm('Delete this inquiry?')) return;
+    setDeletingRequestId(id);
+    try {
+      await adminSupabase.from('contact_requests').delete().eq('id', id);
+      setRequests(prev => prev.filter(r => r.id !== id));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeletingRequestId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (authed && tab === 'requests') fetchRequests();
+  }, [authed, tab]);
 
   const filteredItems = filterCat === 'All'
     ? items
@@ -303,7 +334,7 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div style={{ display: 'flex', gap: '0', marginBottom: '32px', borderBottom: '1px solid #1e1e1e' }}>
-          {(['upload', 'manage'] as Tab[]).map(t => (
+          {(['upload', 'manage', 'requests'] as Tab[]).map(t => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -316,7 +347,7 @@ export default function AdminPage() {
                 textTransform: 'capitalize', letterSpacing: '0.3px',
               }}
             >
-              {t === 'upload' ? '+ Upload Work' : `Manage Items ${items.length > 0 && tab === 'manage' ? `(${filteredItems.length})` : ''}`}
+              {t === 'upload' ? '+ Upload Work' : t === 'manage' ? `Manage Items (${items.length})` : `Requests (${requests.length})`}
             </button>
           ))}
         </div>
@@ -606,6 +637,88 @@ export default function AdminPage() {
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#2a2a2a'; }}
                       >
                         {deletingId === item.id ? 'Deleting...' : '🗑 Delete'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── REQUESTS TAB ────────────────────────────────────────────────── */}
+        {tab === 'requests' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+              <button
+                onClick={fetchRequests}
+                style={{
+                  padding: '7px 16px', borderRadius: '100px',
+                  border: '1px solid #2a2a2a', background: 'transparent',
+                  color: '#666', fontSize: '12px', cursor: 'pointer',
+                }}
+              >
+                ↻ Refresh List
+              </button>
+            </div>
+
+            {loadingRequests ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} style={{ height: '140px', background: '#141414', borderRadius: '10px', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                ))}
+              </div>
+            ) : requests.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '80px 0', color: '#444' }}>
+                <div style={{ fontSize: '40px', marginBottom: '16px' }}>📬</div>
+                <p style={{ fontSize: '15px' }}>No contact inquiries received yet.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {requests.map(req => (
+                  <div
+                    key={req.id}
+                    style={{
+                      background: '#111', border: '1px solid #1e1e1e',
+                      borderRadius: '10px', padding: '24px',
+                      display: 'flex', justifyContent: 'space-between', gap: '24px',
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+                        <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>{req.name}</h3>
+                        <span style={{ color: '#333', fontSize: '12px', display: 'inline' }}>•</span>
+                        <a href={`mailto:${req.email}`} style={{ fontSize: '14px', color: '#e31c1c', textDecoration: 'none', fontWeight: 500 }}>
+                          {req.email}
+                        </a>
+                      </div>
+                      <p style={{ fontSize: '11px', color: '#444', marginBottom: '16px' }}>
+                        {new Date(req.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <div style={{
+                        background: '#0a0a0a', border: '1px solid #1a1a1a',
+                        borderRadius: '6px', padding: '14px 18px',
+                        fontSize: '14px', color: '#ccc', lineHeight: 1.6,
+                        whiteSpace: 'pre-wrap',
+                      }}>
+                        {req.description}
+                      </div>
+                    </div>
+                    <div style={{ alignSelf: 'flex-start' }}>
+                      <button
+                        onClick={() => handleDeleteRequest(req.id)}
+                        disabled={deletingRequestId === req.id}
+                        style={{
+                          padding: '8px 16px', borderRadius: '6px',
+                          border: '1px solid #2a2a2a', background: 'transparent',
+                          color: deletingRequestId === req.id ? '#444' : '#e31c1c',
+                          fontSize: '12px', fontWeight: 600, cursor: deletingRequestId === req.id ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s',
+                        }}
+                        onMouseEnter={e => { if (deletingRequestId !== req.id) { e.currentTarget.style.background = '#e31c1c18'; e.currentTarget.style.borderColor = '#e31c1c44'; } }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#2a2a2a'; }}
+                      >
+                        {deletingRequestId === req.id ? 'Deleting...' : 'Delete'}
                       </button>
                     </div>
                   </div>

@@ -15,3 +15,10 @@ export type Portfolio = {
   is_featured?: boolean;
   created_at: string;
 };
+export type ContactRequest = {
+  id: string;
+  name: string;
+  email: string;
+  description: string;
+  created_at: string;
+};

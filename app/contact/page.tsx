@@ -8,17 +8,38 @@ export default function ContactPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMsg, setSubmitMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) return;
-    // Simulate submission
-    setSubmitted(true);
-    setName('');
-    setEmail('');
-    setDescription('');
-    setTimeout(() => setSubmitted(false), 5000);
+    if (!name.trim() || !email.trim() || !description.trim()) {
+      setSubmitMsg({ type: 'error', text: 'All fields are required.' });
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitMsg(null);
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), description: description.trim() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to submit form.');
+
+      setSubmitMsg({ type: 'success', text: 'Message sent successfully! You will receive a confirmation email shortly.' });
+      setName('');
+      setEmail('');
+      setDescription('');
+    } catch (err: any) {
+      setSubmitMsg({ type: 'error', text: err.message || 'Something went wrong. Please try again.' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -108,39 +129,40 @@ export default function ContactPage() {
                 />
               </div>
 
-              {/* Success message */}
-              {submitted && (
+              {/* Status message */}
+              {submitMsg && (
                 <div style={{
                   padding: '12px 16px',
                   borderRadius: '6px',
-                  background: '#16a34a18',
-                  border: '1px solid #16a34a44',
-                  color: '#4ade80',
+                  background: submitMsg.type === 'success' ? '#16a34a18' : '#e31c1c18',
+                  border: `1px solid ${submitMsg.type === 'success' ? '#16a34a44' : '#e31c1c44'}`,
+                  color: submitMsg.type === 'success' ? '#4ade80' : '#f87171',
                   fontSize: '14px',
                 }}>
-                  Thank you! Your message has been sent successfully.
+                  {submitMsg.text}
                 </div>
               )}
 
               {/* Submit Button */}
               <button
                 type="submit"
+                disabled={submitting}
                 style={{
                   alignSelf: 'flex-start',
                   padding: '12px 36px',
-                  background: '#e31c1c',
-                  color: '#fff',
+                  background: submitting ? '#5a0a0a' : '#e31c1c',
+                  color: submitting ? '#aaa' : '#fff',
                   border: 'none',
                   borderRadius: '4px',
                   fontWeight: 700,
                   fontSize: '14px',
-                  cursor: 'pointer',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
                   transition: 'background 0.2s',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#c41515')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#e31c1c')}
+                onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = '#c41515'; }}
+                onMouseLeave={e => { if (!submitting) e.currentTarget.style.background = '#e31c1c'; }}
               >
-                Submit
+                {submitting ? 'Sending...' : 'Submit'}
               </button>
             </form>
           </motion.div>
