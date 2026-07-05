@@ -476,8 +476,9 @@ export default function AdminPage() {
                     style={{ display: 'none' }}
                   />
                 </div>
+              </div>
 
-                {/* Video Upload Drop Zone */}
+              {/* Video Upload Drop Zone */}
                 <div>
                   <label style={labelStyle}>Video <span style={{ color: '#444' }}>(optional)</span></label>
                   <div
