@@ -56,21 +56,13 @@ export default function About() {
           backgroundSize: '60px 60px', pointerEvents: 'none',
         }} />
         <div style={{ maxWidth: '900px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
-          <motion.p
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ fontSize: '12px', letterSpacing: '3px', color: '#e31c1c', textTransform: 'uppercase', fontWeight: 600, marginBottom: '16px' }}
-          >
-            About Us
-          </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7 }}
             style={{ fontSize: 'clamp(40px, 8vw, 80px)', fontWeight: 800, letterSpacing: '-2px', lineHeight: 1 }}
           >
-            About AJ&AN
+            About Us
           </motion.h1>
         </div>
       </section>
