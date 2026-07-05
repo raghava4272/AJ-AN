@@ -31,7 +31,7 @@ export default function ContactPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit form.');
 
-      setSubmitMsg({ type: 'success', text: 'Message sent successfully! You will receive a confirmation email shortly.' });
+      setSubmitMsg({ type: 'success', text: 'Message sent successfully! Our crew will get back to you shortly.' });
       setName('');
       setEmail('');
       setDescription('');
