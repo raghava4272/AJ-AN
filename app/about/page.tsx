@@ -105,6 +105,49 @@ export default function About() {
         </section>
       ))}
 
+
+      {/* Our Team Section */}
+      <section style={{ padding: '72px 32px', borderBottom: '1px solid #1e1e1e', background: '#0a0a0a' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 style={{ fontSize: 'clamp(24px, 3vw, 36px)', fontWeight: 800, marginBottom: '36px', letterSpacing: '-0.5px' }}>
+              Our Team
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }} className="team-grid">
+              {/* Member 1 */}
+              <div style={{ padding: '24px', background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: '8px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>AJAY KOLIPAKA</h3>
+                <p style={{ fontSize: '14px', color: '#e31c1c', fontWeight: 600, letterSpacing: '0.5px', lineHeight: 1.4 }}>
+                  Creative 2D/VFX Artist | Content Writer
+                </p>
+              </div>
+
+              {/* Member 2 */}
+              <div style={{ padding: '24px', background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: '8px' }}>
+                <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#fff', marginBottom: '8px' }}>ANANYA NARAYANI</h3>
+                <p style={{ fontSize: '14px', color: '#e31c1c', fontWeight: 600, letterSpacing: '0.5px', lineHeight: 1.4 }}>
+                  2D Concept & Environment Artist | Graphic Designer
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .team-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+          }
+        }
+      `}</style>
+
       {/* CTA */}
       <section style={{ padding: '100px 32px', textAlign: 'center' }}>
         <motion.div
