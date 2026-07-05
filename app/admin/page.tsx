@@ -169,7 +169,11 @@ export default function AdminPage() {
     }
   };
 
-  const filteredItems = filterCat === 'All' ? items : items.filter(i => i.category === filterCat);
+  const filteredItems = filterCat === 'All'
+    ? items
+    : filterCat === 'Slideshow Only'
+      ? items.filter(i => i.is_featured)
+      : items.filter(i => i.category === filterCat);
 
   // ─────────────────────────────────────────────────────────────────────────
   // LOGIN SCREEN
@@ -501,7 +505,7 @@ export default function AdminPage() {
           <div>
             {/* Category Filter */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '28px' }}>
-              {['All', ...CATEGORIES].map(c => (
+              {['All', 'Slideshow Only', ...CATEGORIES].map(c => (
                 <button
                   key={c}
                   onClick={() => setFilterCat(c)}
